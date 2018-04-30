@@ -1,6 +1,7 @@
-#include <stdlib.h> 
-#include <string>
-#include <GL/glut.h> 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <GL/glut.h>
 
 #define AltoVentana 1000
 #define AnchoVentana 1000
@@ -10,21 +11,54 @@
 
 #define AltoRaqueta 300
 #define AnchoRaqueta 30
-#define VelocidadRaqueta 20
+#define VelocidadRaqueta 30
 
 #define AnchoMuro 30
 
 #define TamBola 30
-#define VelocidadBola 1
+#define VelocidadInicial 0.1f
 
-float raqueta_y = (float)AltoAreaTrabajo/2 + (float)AltoRaqueta/2;
-float bola_x = (float)AnchoAreaTrabajo - AnchoMuro - (float)TamBola/2;
-float bola_y = (float)AltoAreaTrabajo/2 + (float)TamBola/2;
+#define RebotesPunto 3
+#define PuntosAumentoVelocidad 5
+#define PorcentajeAumentoVelocidad 10
+
+#define xPuntuacion 100
+#define yPuntuacion 30
+
+#define xVidas 700
+#define yVidas 30
+
+float raqueta_y;
+float bola_x;
+float bola_y;
 enum Directions {Izquierda, Derecha};
-Directions dir = Izquierda;
-float angulo = 0;
+Directions dir;
+float angulo;
 
-//std::string s = "jajaxd";
+float velocidadBola;
+int puntuacion;
+int vidas;
+int rebotes_pala;
+char cadenaPuntuacion[20];
+char cadenaVidas[10];
+
+void inicializarPosicion(){
+    bola_x = (float)AnchoAreaTrabajo - AnchoMuro - (float)TamBola/2;
+    bola_y = (float)AltoAreaTrabajo/2 + (float)TamBola/2;
+    raqueta_y = (float)AltoAreaTrabajo/2 + (float)AltoRaqueta/2;
+    dir = Izquierda;
+    angulo = 0;
+}
+
+void inicializar(){
+    velocidadBola = VelocidadInicial;
+    puntuacion = 0;
+    vidas = 5;
+    rebotes_pala = 0;
+    sprintf(cadenaPuntuacion, "Puntuacion: %d", puntuacion);
+    sprintf(cadenaVidas, "Vidas: %d", vidas);
+    inicializarPosicion();
+}
 
 void display(void){
     glMatrixMode(GL_MODELVIEW);
@@ -37,39 +71,64 @@ void display(void){
 
     // DIBUJA RAQUETA
     glRectf(0, raqueta_y, AnchoRaqueta, raqueta_y-AltoRaqueta);
-
+    
     //DIBUJA BOLA
     glRectf(bola_x, bola_y, bola_x+TamBola, bola_y-TamBola);
 
-    //DIBUJA TEXTO
-    /*glRasterPos2f(300, AltoAreaTrabajo - 10);
-    for (int i=0; i<s.size(); i++)
-       glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, s[i]);*/
+    //DIBUJA PUNTUACION
+    glRasterPos2f(xPuntuacion, yPuntuacion);
+    for (int i=0; i<strlen(cadenaPuntuacion); i++)
+       glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, cadenaPuntuacion[i]);
+
+    //DIBUJA VIDAS
+    glRasterPos2f(xVidas, yVidas);
+    for (int i=0; i<strlen(cadenaVidas); i++)
+       glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, cadenaVidas[i]);
 
     glutSwapBuffers();
 }
 
+//Calcula la puntuación y velocidad cada vez que se golpea la pelota
+void golpePala(){
+    rebotes_pala++;
+    if(rebotes_pala == RebotesPunto){
+        rebotes_pala = 0;
+        puntuacion++;
+        sprintf(cadenaPuntuacion, "Puntuacion: %d", puntuacion);
+        if(puntuacion % PuntosAumentoVelocidad == 0){
+            velocidadBola += ((float)PorcentajeAumentoVelocidad / 100) * velocidadBola;
+        }
+    }
+}
+
+void pierdeBola(){
+    if (vidas != 0){
+        vidas--;
+        inicializarPosicion();
+    }else{
+        inicializar();
+    }
+}
 
 void MueveBola(){
     if (dir == Izquierda){
-        if (bola_x - VelocidadBola > AnchoRaqueta){
-            bola_x -= VelocidadBola;
+        if (bola_x - velocidadBola > AnchoRaqueta){
+            bola_x -= velocidadBola;
         }else{
             bola_x = AnchoRaqueta;
         }
         if (bola_x == AnchoRaqueta){
             if(bola_y - TamBola > raqueta_y || bola_y < raqueta_y - AltoRaqueta){
-                bola_x = (float)AnchoAreaTrabajo - AnchoMuro - (float)TamBola/2;
-                bola_y = (float)AltoAreaTrabajo/2 + (float)TamBola/2;
-                angulo = 0;
+                pierdeBola();
             }else{
                 dir = Derecha;
                 angulo = -((raqueta_y + TamBola - bola_y)/AltoRaqueta - 0.5);
+                golpePala();
             }
         }
     }else{
-        if (bola_x + TamBola + VelocidadBola < AnchoAreaTrabajo - AnchoMuro){
-            bola_x += VelocidadBola;
+        if (bola_x + TamBola + velocidadBola < AnchoAreaTrabajo - AnchoMuro){
+            bola_x += velocidadBola;
         }else{
             bola_x = AnchoAreaTrabajo - AnchoMuro - TamBola;
         }
@@ -78,12 +137,12 @@ void MueveBola(){
         }
     }
 
-    if (bola_y + VelocidadBola*angulo > AltoAreaTrabajo){
+    if (bola_y + velocidadBola*angulo > AltoAreaTrabajo){
         bola_y = AltoAreaTrabajo;
-    }else if (bola_y + VelocidadBola*angulo - TamBola < 0){
+    }else if (bola_y + velocidadBola*angulo - TamBola < 0){
         bola_y = TamBola;
     }else{
-        bola_y += VelocidadBola*angulo;
+        bola_y += velocidadBola*angulo;
     }
 
     if (bola_y == AltoAreaTrabajo || bola_y - TamBola == 0){
@@ -120,6 +179,7 @@ static void reshape(int w, int h){
 
 
 int main(int argc, char **argv){
+    inicializar();
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE);
     glutInitWindowSize(AnchoVentana, AltoVentana);
