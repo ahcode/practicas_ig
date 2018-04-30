@@ -1,0 +1,56 @@
+#VRML V2.0 utf8 
+
+Transform {
+    translation 0 -80 0
+    rotation 0 1 0 0.8
+    children [
+        Inline {
+            url      "cabeza.wrl"
+        }
+    ]
+}
+
+Transform {
+    scale 15 15 15
+    children [
+        Inline {
+            url      "cuerpo.wrl"
+        }
+    ]
+}
+
+Transform {
+    translation 0 250 0
+    children Shape {
+        appearance Appearance {
+             material Material {}
+        }
+        geometry Text {
+            string ["Sub-Zero"]
+            fontStyle FontStyle {
+                family  "SANS"
+                style  "BOLD"
+                size    40
+                justify "MIDDLE"
+            }
+        }
+    }
+}
+
+Transform {
+    translation 0 220 0
+    children Shape {
+        appearance Appearance {
+             material Material {}
+        }
+        geometry Text {
+            string ["Jugando al baloncesto"]
+            fontStyle FontStyle {
+                family  "SANS"
+                style  "BOLD"
+                size    20
+                justify "MIDDLE"
+            }
+        }
+    }
+}
