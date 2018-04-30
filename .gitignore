@@ -1,2 +1,3 @@
 #Ejecutables OpenGL
 *.x
+*.out
