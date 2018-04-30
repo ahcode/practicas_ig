@@ -10,7 +10,9 @@
 #define RectangleHeight 100
 #define RectangleWidth 100
 
-int x, y;
+#define Velocity 0.136f
+
+float x, y;
 int lasty = 0;
 const int ncolors = 5;
 const int colors[ncolors][3] = {{1,1,1},{0,1,0},{1,1,0},{1,0,1},{0,1,1}};
@@ -67,10 +69,11 @@ void display(void){
 void MueveCuadrado(){
     switch(dir){
         case Right:
-            x=x+1;
-            if (x + RectangleWidth == WorkspaceWidth){
+            x=x+Velocity;
+            if (x + RectangleWidth >= WorkspaceWidth){
+                x = WorkspaceWidth - RectangleWidth;
                 if (!reverse){
-                    if (y + RectangleHeight == WorkspaceHeight){
+                    if (y + RectangleHeight >= WorkspaceHeight){
                         reverse = true;
                         first = false;
                         dir = Left;
@@ -79,7 +82,7 @@ void MueveCuadrado(){
                         dir = Up;
                     }
                 }else{
-                    if (y == 0){
+                    if (y <= 0){
                         reverse = false;
                         dir = Left;
                         color = (color+1)%ncolors;
@@ -92,10 +95,11 @@ void MueveCuadrado(){
             break;
 
         case Left:
-            x = x - 1;
-            if (x == 0){
+            x = x - Velocity;
+            if (x <= 0){
+                x = 0;
                 if (!reverse){
-                    if (y + RectangleHeight == WorkspaceHeight){
+                    if (y + RectangleHeight >= WorkspaceHeight){
                         reverse = true;
                         first = false;
                         dir = Right;
@@ -104,7 +108,7 @@ void MueveCuadrado(){
                         dir = Up;
                     }
                 }else{
-                    if (y == 0){
+                    if (y <= 0){
                         reverse = false;
                         dir = Right;
                         color = (color+1)%ncolors;
@@ -117,8 +121,12 @@ void MueveCuadrado(){
             break;
 
         case Up:
-            y=y+1;
-            if (y == lasty + RectangleHeight || y + RectangleHeight == WorkspaceHeight){
+            y=y+Velocity;
+            if (y >= lasty + RectangleHeight || y + RectangleHeight >= WorkspaceHeight){
+                if (y + RectangleHeight >= WorkspaceHeight)
+                    y = WorkspaceHeight - RectangleHeight;
+                else if (y >= lasty + RectangleHeight)
+                    y = lasty + RectangleHeight;
                 if (x > 0)
                     dir = Left;
                 else
@@ -127,8 +135,12 @@ void MueveCuadrado(){
             break;
 
         case Down:
-            y=y-1;
-            if (y == lasty - RectangleHeight || y == 0){
+            y=y-Velocity;
+            if (y <= lasty - RectangleHeight || y <= 0){
+                if (y <= 0)
+                    y = 0;
+                else if (y <= lasty - RectangleHeight)
+                    y = lasty - RectangleHeight;
                 if (x > 0)
                     dir = Left;
                 else
