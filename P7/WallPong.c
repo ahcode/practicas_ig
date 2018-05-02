@@ -104,6 +104,7 @@ void golpePala(){
 void pierdeBola(){
     if (vidas != 0){
         vidas--;
+        sprintf(cadenaVidas, "Vidas: %d", vidas);
         inicializarPosicion();
     }else{
         inicializar();
